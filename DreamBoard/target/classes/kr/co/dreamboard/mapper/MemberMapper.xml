@@ -1,0 +1,42 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="kr.co.dreamboard.mapper.MemberMapper">
+
+<select id="memLogin" parameterType="kr.co.dreamboard.entity.Member" resultType="kr.co.dreamboard.entity.Member">
+    select * from member 
+    where memID=#{memID} and memPwd=#{memPwd}
+</select>
+
+<select id="findID" parameterType="kr.co.dreamboard.entity.Member" resultType="kr.co.dreamboard.entity.Member">
+     select * from member 
+     where memName=#{memName} and memEmail=#{memEmail}
+</select>  
+
+
+<insert id="register" parameterType="kr.co.dreamboard.entity.Member">
+     INSERT INTO member (memID,memPwd,memName,memAge,memGender,memEmail,memAddr,memProfile)
+	VALUES (#{memID},#{memPwd},#{memName},#{memAge},#{memGender},#{memEmail},#{memAddr},#{memProfile})
+</insert>
+
+<select id="checkDuplicate" resultType="kr.co.dreamboard.entity.Member">
+   select * from member where memID=#{memID}
+</select>
+  
+
+<select id="getMember" resultType="kr.co.dreamboard.entity.Member">
+     select * from member where memID=#{memID}
+</select>  
+
+ 
+<update id="memUpdate" parameterType="kr.co.dreamboard.entity.Member">
+   update member set memPwd=#{memPwd}, memName=#{memName}, 
+          memAge=#{memAge},memGender=#{memGender},memEmail=#{memEmail},memAddr=#{memAddr}
+          where memIdx=#{memIdx}      
+</update>
+  
+  
+<update id="memProfileUpdate" parameterType="kr.co.dreamboard.entity.Member">
+   update member set memProfile=#{memProfile} where memID=#{memID}
+</update>
+
+</mapper>

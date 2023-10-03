@@ -1,0 +1,88 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="kr.co.dreamboard.mapper.BoardMapper">
+
+	<sql id="search">
+		<if test="type=='writer'">
+			where writer like concat('%',#{keyword},'%')
+		</if>
+		<if test="type=='title'">
+			where title like concat('%',#{keyword},'%')
+		</if>
+		<if test="type=='content'">
+			where content like concat('%',#{keyword},'%')
+		</if>
+	</sql>
+
+	<select id="getList" resultType="kr.co.dreamboard.entity.Board" parameterType="kr.co.dreamboard.entity.Criteria">
+		select * from board
+		<include refid="search" />
+		order by boardGroup desc, boardSequence asc
+		limit #{pageStart},#{perPageNum}
+	</select>
+
+	<insert id="insert" parameterType="kr.co.dreamboard.entity.Board">
+		insert into
+		board(boardIdx,memID,title,content,writer,boardGroup,boardSequence,boardLevel,boardAvailable)
+		select IFNULL(MAX(boardIdx)+1, 1),#{memID},#{title},#{content},#{writer},
+		IFNULL(MAX(boardGroup)+1, 0),0,0,1
+		from board
+	</insert>
+
+	<insert id="insertSelectKey" parameterType="kr.co.dreamboard.entity.Board">
+		<selectKey keyProperty="boardIdx,boardGroup" resultType="kr.co.dreamboard.entity.Board" order="BEFORE">
+			select IFNULL(max(boardIdx)+1, 1) as boardIdx,
+			IFNULL(max(boardGroup)+1, 0) as boardGroup
+			from board
+		</selectKey>
+		insert into
+		board(boardIdx,memID,title,content,writer,boardGroup,boardSequence,boardLevel,boardAvailable)
+		values(#{boardIdx},#{memID},#{title},#{content},#{writer},#{boardGroup},0,0,1)
+	</insert>
+
+	<insert id="replyInsert" parameterType="kr.co.dreamboard.entity.Board">
+		<selectKey keyProperty="boardIdx" resultType="kr.co.dreamboard.entity.Board" order="BEFORE">
+			select IFNULL(max(boardIdx)+1, 1) as boardIdx from board
+		</selectKey>
+		insert into
+		board(boardIdx,memID,title,content,writer,boardGroup,boardSequence,boardLevel,boardAvailable)
+		values(#{boardIdx},#{memID},#{title},#{content},#{writer},#{boardGroup},#{boardSequence},#{boardLevel},1)
+	</insert>
+
+	<select id="read" resultType="kr.co.dreamboard.entity.Board">
+		select * from board 
+		where boardIdx=#{boardIdx}
+	</select>
+
+	<update id="update" parameterType="kr.co.dreamboard.entity.Board">
+		update board set
+		title=#{title}, content=#{content}
+		where boardIdx=#{boardIdx}
+	</update>
+
+	<delete id="delete">
+		update board set boardAvailable=0 where boardIdx=#{boardIdx}
+	</delete>
+
+	<update id="replySeqUpdate" parameterType="kr.co.dreamboard.entity.Board">
+		update board set
+		boardSequence=boardSequence+1
+		where boardGroup=#{boardGroup} and
+		boardSequence > #{boardSequence}
+	</update>
+
+	<select id="login" resultType="kr.co.dreamboard.entity.Member" parameterType="kr.co.dreamboard.entity.Member">
+		select * from tblMember where memID=#{memID} and
+		memPwd=#{memPwd}
+	</select>
+
+	<select id="totalCount" resultType="int" parameterType="kr.co.dreamboard.entity.Criteria">
+		select count(*) from board
+		<include refid="search" />
+	</select>
+	
+	<update id="countUpdate">
+    	update board set count=count+1 where boardIdx=#{boardIdx}
+  	</update>
+
+</mapper>
