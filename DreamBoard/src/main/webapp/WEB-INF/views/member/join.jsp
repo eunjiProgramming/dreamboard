@@ -106,8 +106,9 @@
 		        return false;
 		    }
 		    
-		    if (memName.length < 2 || memName.length > 20) {
-		        $("#checkMessage").html("이름은 2자 이상 20자 이하로 입력해주세요.");
+		    var namePattern = /^[가-힣]+$/;  // 한글만 허용하는 정규표현식
+		    if (!namePattern.test(memName) || memName.length < 2 || memName.length > 20) {
+		        $("#checkMessage").html("이름은 한글 2자 이상 20자 이하로 입력해주세요.");
 		        $("#checking").modal("show");
 		        return false;
 		    }

@@ -17,7 +17,7 @@
                 		
         
         <property name="java-output-path" value="target/classes"/>
-        <property name="context-root" value="dreamboard"/>
+        <property name="context-root" value="controller"/>
                 	
     
     </wb-module>

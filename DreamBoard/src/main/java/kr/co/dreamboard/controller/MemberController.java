@@ -2,6 +2,8 @@ package kr.co.dreamboard.controller;
 
 import java.io.File;
 import java.io.IOException;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpSession;
@@ -168,10 +170,13 @@ public class MemberController {
 	        return "redirect:/member/join";
 	    }
 	    
-	    // 이름 유효성 검사
-	    if (m.getMemName() == null || m.getMemName().trim().length() < 2 || m.getMemName().trim().length() > 20) {
+	    // 이름 유효성 검사 (한글만)
+	    Pattern pattern = Pattern.compile("^[가-힣]+$");  // 한글만 허용하는 정규 표현식
+	    Matcher matcher = pattern.matcher(m.getMemName());
+
+	    if (!matcher.find() || m.getMemName().trim().length() < 2 || m.getMemName().trim().length() > 20) {
 	        rttr.addFlashAttribute("msgType", "실패 메세지");
-	        rttr.addFlashAttribute("msg", "이름은 2자 이상 20자 이하로 입력해주세요.");
+	        rttr.addFlashAttribute("msg", "이름은 2자 이상 20자 이하의 한글로만 입력해주세요.");
 	        return "redirect:/member/join";
 	    }
 
@@ -227,7 +232,13 @@ public class MemberController {
 
 	// 회원정보수정화면
 	@GetMapping("/modify")
-	public String memUpdateForm() {
+	public String memUpdateForm(HttpSession session) {
+		// 로그인 체크
+		Member mvo = (Member) session.getAttribute("mvo");
+		if(mvo == null) {
+			session.setAttribute("dest", "/member/modify");
+			return "redirect:/member/login";
+		}
 		return "member/modify";
 	}
 		
@@ -267,10 +278,13 @@ public class MemberController {
 	        return "redirect:/member/modify";
 	    }
 	    
-	    // 이름 유효성 검사
-	    if (m.getMemName() == null || m.getMemName().trim().length() < 2 || m.getMemName().trim().length() > 20) {
+	    // 이름 유효성 검사 (한글만)
+	    Pattern pattern = Pattern.compile("^[가-힣]+$");  // 한글만 허용하는 정규 표현식
+	    Matcher matcher = pattern.matcher(m.getMemName());
+
+	    if (!matcher.find() || m.getMemName().trim().length() < 2 || m.getMemName().trim().length() > 20) {
 	        rttr.addFlashAttribute("msgType", "실패 메세지");
-	        rttr.addFlashAttribute("msg", "이름은 2자 이상 20자 이하로 입력해주세요.");
+	        rttr.addFlashAttribute("msg", "이름은 2자 이상 20자 이하의 한글로만 입력해주세요.");
 	        return "redirect:/member/modify";
 	    }
 
@@ -312,7 +326,13 @@ public class MemberController {
 	
 	// 회원의 사진등록 화면
 	@GetMapping("/image")
-	public String memImageForm() {
+	public String memImageForm(HttpSession session) {
+		// 로그인 체크
+		Member mvo = (Member) session.getAttribute("mvo");
+		if(mvo == null) {
+			session.setAttribute("dest", "/member/image");
+			return "redirect:/member/login";
+		}
 		return "member/memImageForm";  // memImageForm.jsp
 	}
 	
