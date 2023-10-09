@@ -32,13 +32,18 @@
     		e.preventDefault(); // a tag의 기능을 막는 부분
     		var page=$(this).attr("href"); // 페이지번호
     		pageFrm.find("#page").val(page);
-    		pageFrm.submit(); // /sp08/board/list   		
+    		pageFrm.attr("action","${contextPath}/board/list");
+    		pageFrm.submit();
     	});  
     	
     	// 상세보기 클릭시 이동 하기
     	$(".move").on("click", function(e){
     		e.preventDefault(); // a tag의 기능을 막는 부분
     		var boardIdx=$(this).attr("href");
+    		
+    		// 기존의 boardIdx hidden input을 제거
+    	    pageFrm.find("input[name='boardIdx']").remove();
+    		
     		var tag="<input type='hidden' name='boardIdx' value='"+boardIdx+"'/>";
     		pageFrm.append(tag);
     		pageFrm.attr("action","${contextPath}/board/get");
