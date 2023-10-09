@@ -36,9 +36,9 @@ public class BoardServiceImpl implements BoardService {
 	}
 
 	@Override
-	public Board get(int idx) {
-		Board vo=boardMapper.read(idx);
-		boardMapper.countUpdate(idx);
+	public Board get(int boardIdx) {
+		Board vo=boardMapper.read(boardIdx);
+		boardMapper.countUpdate(boardIdx);
 		return vo;
 	}
 
@@ -48,14 +48,14 @@ public class BoardServiceImpl implements BoardService {
 	}
 	
 	@Override
-	public void remove(int idx) {
-		boardMapper.delete(idx);		
+	public void remove(int boardIdx) {
+		boardMapper.delete(boardIdx);		
 	}
 	
 	@Override
 	public void replyProcess(Board vo) {
 		// - 답글만들기
-		// 1. 부모글(원글)의 정보를 가져오기(vo->idx)
+		// 1. 부모글(원글)의 정보를 가져오기(vo->boardIdx)
 		Board parent=boardMapper.read(vo.getBoardIdx());
 		// 2. 부모글의 boardGroup의 값을->답글(vo)정보에 저장하기
 		vo.setBoardGroup(parent.getBoardGroup());

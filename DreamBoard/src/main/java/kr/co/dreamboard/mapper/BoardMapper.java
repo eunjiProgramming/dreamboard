@@ -12,11 +12,11 @@ public interface BoardMapper { // @, XML
 	public void insert(Board VO);
 	public void insertSelectKey(Board vo);
 	public Member login(Member vo); // SQL
-	public Board read(int idx);
+	public Board read(int boardIdx);
 	public void update(Board vo);
-	public void delete(int idx);
+	public void delete(int boardIdx);
 	public void replySeqUpdate(Board parent);
 	public void replyInsert(Board vo);
 	public int totalCount(Criteria cri);
-	public void countUpdate(int idx);
+	public void countUpdate(int boardIdx);
 }
