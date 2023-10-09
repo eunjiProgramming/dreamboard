@@ -39,7 +39,7 @@
 		    <span><input type="file" class="form-control" id="memProfile" name="memProfile" accept=".png, .jpg, .jpeg, .gif">이미지를 업로드하세요</span>
 		    
 		  </div>
-		  <input type="text" name="originURL" value="<%= request.getHeader("Referer") %>" />
+		  <input type="hidden" name="originURL" value="<%= request.getHeader("Referer") %>" />
 		  <button type="submit" class="btn btn-primary">이미지등록</button>
 		</form>
     </div> 
