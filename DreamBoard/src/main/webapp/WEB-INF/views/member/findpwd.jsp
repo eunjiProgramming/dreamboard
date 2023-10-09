@@ -19,31 +19,31 @@
 	  		$("#myModal").modal("show");
 	  	}
 	  });
-</script>
+  </script>
 </head>
 <body>
  
   <jsp:include page="../common/header.jsp"/> 
   <div class="card">
-    <div class="card-header">회원사진등록</div>
+   <div class="card-header">비밀번호 찾기</div>
     <div class="card-body">
-    
-	    <form action="${contextPath}/member/image" method="post" enctype="multipart/form-data">
-		  <div class="form-group">
+	    <form action="${contextPath}/member/find/pwd" method="post">
+		 <div class="form-group">
+		    <label for="memName">이름:</label>
+		    <input type="text" class="form-control" placeholder="성함 입력해주세요" id="memName" name="memName" value="${param.memName}">
+		</div>
+		<div class="form-group">
 		    <label for="memID">아이디:</label>
-		    <input type="text" class="form-control" id="memID" name="memID" value="${mvo.memID}" readonly>
-		    
-		  </div>
-		  <div class="form-group">
-		    <label for="memProfile">사진 업로드:</label>
-		    <span><input type="file" class="form-control" id="memProfile" name="memProfile" accept=".png, .jpg, .jpeg, .gif">이미지를 업로드하세요</span>
-		    
-		  </div>
-		  <input type="text" name="originURL" value="<%= request.getHeader("Referer") %>" />
-		  <button type="submit" class="btn btn-primary">이미지등록</button>
+		    <input type="text" class="form-control" placeholder="아이디 입력해주세요" id="memID" name="memID" value="${param.memID}">
+		</div>
+		<div class="form-group">
+		    <label for="memEmail">이메일:</label>
+		    <input type="email" class="form-control" placeholder="이메일을 입력해주세요" id="memEmail" name="memEmail" value="${param.memEmail}">
+		</div>
+		  <button type="submit" class="btn btn-primary">비밀번호 찾기</button>
 		</form>
+    </div>
     </div> 
-    
     <!-- The Modal -->
 	<div class="modal" id="myModal">
 	  <div class="modal-dialog">
@@ -57,7 +57,7 @@
 	
 	      <!-- Modal body -->
 	      <div class="modal-body">
-	       ${msg}
+	       <p>${msg}</p>
 	      </div>
 	
 	      <!-- Modal footer -->

@@ -2,6 +2,8 @@ package kr.co.dreamboard.controller;
 
 import java.io.File;
 import java.io.IOException;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -54,6 +56,14 @@ public class MemberController {
 		Member mvo = memberService.login(m);
 		
 		if (mvo != null) { // 로그인에 성공
+			
+			if (!mvo.isEnabled()) { // enabled가 false인 경우
+	            rttr.addFlashAttribute("msgType", "실패 메세지");
+	            rttr.addFlashAttribute("msg", "해당 계정은 비활성화 상태입니다.");
+	            rttr.addAttribute("memID", m.getMemID());
+	            return "redirect:/member/login";
+	        }
+			
 			rttr.addFlashAttribute("msgType", "성공 메세지");
 			rttr.addFlashAttribute("msg", "로그인에 성공했습니다.");
 			session.setAttribute("mvo", mvo); // ${!empty mvo}
@@ -88,6 +98,7 @@ public class MemberController {
 		return "member/findid";
 	}
 	
+	
 	// 아이디 찾기 기능 구현
 	@PostMapping("/find/id")
 	public String findId(Member m, RedirectAttributes rttr) {
@@ -121,6 +132,106 @@ public class MemberController {
 		}
 	}
 	
+	// 비밀번호 찾기 화면으로 이동
+	@GetMapping("/find/password")
+	public String findPwd() {
+		return "member/findpwd";
+	}
+	
+	// 비밀번호 찾기 기능 구현
+	@PostMapping("/find/pwd")
+	public String findPwd(Member m, RedirectAttributes rttr, HttpSession session) {
+		
+		if (m.getMemName() == null || m.getMemName().trim().equals("") || 
+				m.getMemID() == null || m.getMemID().trim().equals("") || 
+				m.getMemEmail() == null || m.getMemEmail().trim().equals("")) {
+			
+			rttr.addFlashAttribute("msgType", "실패 메세지");
+			rttr.addFlashAttribute("msg", "모든 내용을 입력해주세요.");
+			
+			rttr.addAttribute("memName", m.getMemName());
+			rttr.addAttribute("memID", m.getMemID());
+			rttr.addAttribute("memEmail", m.getMemEmail());
+			
+			return "redirect:/member/find/password";
+		}
+		
+		
+		Member mvo = memberService.findPwd(m);
+		
+		if (mvo != null) { // 비밀번호 찾기 성공
+			rttr.addFlashAttribute("msgType", "성공 메세지");
+			rttr.addFlashAttribute("msg", "비밀번호를 변경해주세요");
+			rttr.addAttribute("memID", mvo.getMemID());
+			session.setAttribute("canChangePwd", true);
+			return "redirect:/member/find/password/change";
+			
+		} else { // 비밀번호 찾기 실패
+			rttr.addFlashAttribute("msgType", "실패 메세지");
+			rttr.addFlashAttribute("msg", "일치하는 회원이 없습니다.");
+			rttr.addAttribute("memName", m.getMemName());
+			rttr.addAttribute("memID", m.getMemID());
+			rttr.addAttribute("memEmail", m.getMemEmail());
+			return "redirect:/member/find/password";
+		}
+	}
+	
+	// 비밀번호 찾기 페이지
+	@GetMapping("/find/password/change")
+	public String pwdChange(HttpSession session) {
+		// 직접 URL 접근 허용되지 않음
+	    if (session.getAttribute("canChangePwd") == null) {
+	        return "redirect:/member/login";
+	    }
+	    
+	    session.removeAttribute("canChangePwd"); // 사용 후 Attribute 제거
+	    return "member/pwdChange";
+	}
+	
+	@PostMapping("/find/password/change")
+	public String passwordChange(@RequestParam("memPwd") String memPwd, @RequestParam("memID") String memID,
+			RedirectAttributes rttr, HttpSession session) {
+	    
+		// 비밀번호 유효성 검사를 위한 패턴
+		Pattern pwdPattern = Pattern.compile("^(?=.*[a-z])[a-z\\d*!]{7,20}$");
+	    
+	    // 비밀번호 유효성 검사
+	    if (memPwd == null || memPwd.trim().equals("")) {
+	        rttr.addFlashAttribute("msgType", "실패 메세지");
+	        rttr.addFlashAttribute("msg", "비밀번호 변경 / 확인을 입력해주세요.");
+	        session.setAttribute("canChangePwd", true);
+	        return "redirect:/member/find/password/change";
+	    }
+	    
+	    if (!pwdPattern.matcher(memPwd).matches()) {
+	        rttr.addFlashAttribute("msgType", "실패 메세지");
+	        rttr.addFlashAttribute("msg", "비밀번호는 영문자(소문자)를 반드시 포함하며, 숫자와 특수문자 *! 만 포함 가능하고, 7~20자여야 합니다.");
+	        session.setAttribute("canChangePwd", true);
+	        return "redirect:/member/find/password/change";
+	    }
+	    
+	    Map<String, String> params = new HashMap<>();
+	    params.put("memPwd", memPwd);
+	    params.put("memID", memID);
+	    
+	    int result = memberService.modifyPasswordByMemID(params);
+	    
+	    if(result > 0) {
+	        // 성공 시 로직
+	        rttr.addFlashAttribute("msgType", "성공 메세지");
+	        rttr.addFlashAttribute("msg", "비밀번호 변경이 성공했습니다.");
+	        return "redirect:/member/login"; // 성공 시 리다이렉트될 페이지
+	    } else {
+	        // 실패 시 로직
+	        rttr.addFlashAttribute("msgType", "실패 메세지");
+	        rttr.addFlashAttribute("msg", "비밀번호 변경에 실패했습니다.");
+	        return "redirect:/member/login"; // 실패 시 리다이렉트될 페이지 지정
+	    }
+	    
+	    
+	}
+	
+	
 	// 회원가입 화면으로 이동
 	@GetMapping("/join")
 	public String memJoin() {
@@ -150,10 +261,14 @@ public class MemberController {
 		
 		m.setMemProfile(""); // 사진이미는 없다는 의미 ""
 		
-		 // 아이디 유효성 검사
-	    if (m.getMemID() == null || m.getMemID().trim().length() < 3 || m.getMemID().trim().length() > 20) {
+	    
+	    // 아이디 유효성 검사
+	    Pattern idPattern = Pattern.compile("^(?=.*[a-z])[a-z0-9]{3,20}$");
+	    Matcher idMatcher = idPattern.matcher(m.getMemID());
+
+	    if (!idMatcher.find()) {
 	        rttr.addFlashAttribute("msgType", "실패 메세지");
-	        rttr.addFlashAttribute("msg", "아이디는 3자 이상 20자 이하로 입력해주세요.");
+	        rttr.addFlashAttribute("msg", "아이디는 소문자를 반드시 포함하며, 숫자는 포함 가능한 3자 이상 20자 이하로 입력해주세요.");
 	        return "redirect:/member/join";
 	    }
 
@@ -163,10 +278,14 @@ public class MemberController {
 	        rttr.addFlashAttribute("msg", "비밀번호가 서로 다릅니다.");
 	        return "redirect:/member/join";
 	    }
+	    
+	    
+	    Pattern pwdPattern = Pattern.compile("^(?=.*[a-z])[a-z0-9*!]{7,20}$");
+	    Matcher pwdMatcher = pwdPattern.matcher(memPwd1);
 
-	    if (memPwd1 == null || memPwd1.trim().length() < 7 || memPwd1.trim().length() > 20) {
+	    if (!pwdMatcher.find()) {
 	        rttr.addFlashAttribute("msgType", "실패 메세지");
-	        rttr.addFlashAttribute("msg", "비밀번호는 7자 이상 20자 이하로 입력해주세요.");
+	        rttr.addFlashAttribute("msg", "비밀번호는 소문자를 반드시 포함하며, 숫자 및 특수문자 *! 는 포함 가능한 7자 이상 20자 이하로 입력해주세요.");
 	        return "redirect:/member/join";
 	    }
 	    
@@ -207,7 +326,10 @@ public class MemberController {
 		if(result==1) { // 회원가입 성공 메세지
 		   rttr.addFlashAttribute("msgType", "성공 메세지");
 		   rttr.addFlashAttribute("msg", "회원가입에 성공했습니다.");
+		   
 		   // 회원가입이 성공하면=>로그인처리하기
+		   m = memberService.getMember(m.getMemID());
+		   
 		   session.setAttribute("mvo", m); // ${!empty mvo}
 		   return "redirect:/";
 		   
@@ -246,7 +368,7 @@ public class MemberController {
 	// 회원정보수정
 	@PostMapping("/modify")
 	public String memUpdate(Member m, String memPwd1, String memPwd2,
-            RedirectAttributes rttr, HttpSession session)  {
+            RedirectAttributes rttr, HttpSession session, HttpServletRequest request)  {
 		
 		
 		if(m.getMemID()==null || m.getMemID().trim().equals("") ||
@@ -272,11 +394,15 @@ public class MemberController {
 	        return "redirect:/member/modify";
 	    }
 
-	    if (memPwd1 == null || memPwd1.trim().length() < 7 || memPwd1.trim().length() > 20) {
+	    Pattern pwdPattern = Pattern.compile("^(?=.*[a-z])[a-z0-9*!]{7,20}$");
+	    Matcher pwdMatcher = pwdPattern.matcher(memPwd1);
+
+	    if (!pwdMatcher.find()) {
 	        rttr.addFlashAttribute("msgType", "실패 메세지");
-	        rttr.addFlashAttribute("msg", "비밀번호는 7자 이상 20자 이하로 입력해주세요.");
+	        rttr.addFlashAttribute("msg", "비밀번호는 소문자를 반드시 포함하며, 숫자 및 특수문자 *! 는 포함 가능한 7자 이상 20자 이하로 입력해주세요.");
 	        return "redirect:/member/modify";
 	    }
+	    
 	    
 	    // 이름 유효성 검사 (한글만)
 	    Pattern pattern = Pattern.compile("^[가-힣]+$");  // 한글만 허용하는 정규 표현식
@@ -309,19 +435,24 @@ public class MemberController {
 	        return "redirect:/member/modify";
 	    }
 	    
-		// 회원을 수정저장하기
-		int result=memberService.modify(m);
-		if(result==1) { // 수정성공 메세지
-		   rttr.addFlashAttribute("msgType", "성공 메세지");
-		   rttr.addFlashAttribute("msg", "회원정보 수정에 성공했습니다.");
-		   // 회원수정이 성공하면=>로그인처리하기
-		   session.setAttribute("mvo", m); // ${!empty mvo}
-		   return "redirect:/";
-		}else {
-		   rttr.addFlashAttribute("msgType", "실패 메세지");
-		   rttr.addFlashAttribute("msg", "회원정보 수정에 실패했습니다.");
-		   return "redirect:/member/modify";
-		}
+	    String originURL = request.getParameter("originURL");
+	    
+	    if (originURL == null || originURL.isEmpty()) {
+	        originURL = "/";  // 기본 페이지 (홈페이지)로 설정
+	    }
+	    
+	    // 회원을 수정저장하기
+	    int result=memberService.modify(m);
+	    if(result==1) {
+	       rttr.addFlashAttribute("msgType", "성공 메세지");
+	       rttr.addFlashAttribute("msg", "회원정보 수정에 성공했습니다.");
+	       session.setAttribute("mvo", m);
+	       return "redirect:" + originURL;
+	    } else {
+	       rttr.addFlashAttribute("msgType", "실패 메세지");
+	       rttr.addFlashAttribute("msg", "회원정보 수정에 실패했습니다.");
+	       return "redirect:" + originURL;
+	    }
 	}
 	
 	// 회원의 사진등록 화면
@@ -339,6 +470,8 @@ public class MemberController {
 	// 회원사진 이미지 업로드(upload, DB저장)
 	@PostMapping("/image")
 	public String memImageUpdate(HttpServletRequest request,HttpSession session, RedirectAttributes rttr) throws IOException {
+		
+		
 		// 파일업로드 API(cos.jar, 3가지)
 		MultipartRequest multi=null;
 		int fileMaxSize=40*1024*1024; // 40MB		
@@ -398,6 +531,14 @@ public class MemberController {
 	        rttr.addFlashAttribute("msg", "기존 이미지가 삭제되었습니다.");
 	    }
 		
+		// Referer 헤더를 이용하여 이전 페이지의 URL을 가져옵니다.
+		String originURL = multi.getParameter("originURL");
+	    
+	    // 만약 Referer 정보가 없거나 비어있으면 기본 페이지 URL로 설정
+	    if (originURL == null || originURL.isEmpty()) {
+	        originURL = "/"; 
+	    }
+		
 		// 새로운 이미지를 테이블에 업데이트
 		Member mvo=new Member();
 		mvo.setMemID(memID);
@@ -410,7 +551,25 @@ public class MemberController {
 		session.setAttribute("mvo", m);
 		rttr.addFlashAttribute("msgType", "성공 메세지");
 		rttr.addFlashAttribute("msg", "이미지 변경이 성공했습니다.");	
-		return "redirect:/";
+		return "redirect:" + originURL;
 	}	
+	
+	@GetMapping("/deactivate")
+    public String deactivateMember(HttpSession session, RedirectAttributes rttr) {
+		Member mvo = (Member) session.getAttribute("mvo");
+
+		if (mvo != null) {
+		    String memID = mvo.getMemID();
+            memberService.deactivateMember(memID);
+            session.invalidate(); // 회원 탈퇴 후 세션 무효화
+            rttr.addFlashAttribute("msgType", "성공 메세지");
+            rttr.addFlashAttribute("msg", "회원 탈퇴가 성공적으로 이루어졌습니다.");
+            return "redirect:/"; // 홈페이지나 로그인 페이지로 리다이렉트
+        } else {
+            rttr.addFlashAttribute("msgType", "오류 메세지");
+            rttr.addFlashAttribute("msg", "회원 탈퇴에 실패하였습니다.");
+            return "redirect:/"; // 마이 페이지나 다른 페이지로 리다이렉트
+        }
+    }
 	    
 }

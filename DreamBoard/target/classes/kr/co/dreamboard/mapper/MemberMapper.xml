@@ -12,6 +12,14 @@
      where memName=#{memName} and memEmail=#{memEmail}
 </select>  
 
+<select id="findPwd" parameterType="kr.co.dreamboard.entity.Member" resultType="kr.co.dreamboard.entity.Member">
+     select * from member 
+     where memName=#{memName} and memID=#{memID} and memEmail=#{memEmail}
+</select>  
+
+<update id="updatePasswordByMemID" parameterType="map">
+   UPDATE member SET memPwd=#{memPwd} WHERE memID=#{memID}
+</update>
 
 <insert id="register" parameterType="kr.co.dreamboard.entity.Member">
      INSERT INTO member (memID,memPwd,memName,memAge,memGender,memEmail,memAddr,memProfile)
@@ -37,6 +45,10 @@
   
 <update id="memProfileUpdate" parameterType="kr.co.dreamboard.entity.Member">
    update member set memProfile=#{memProfile} where memID=#{memID}
+</update>
+
+<update id="deactivateMember" parameterType="string">
+   UPDATE member SET enabled=0 WHERE memID=#{memID}
 </update>
 
 </mapper>

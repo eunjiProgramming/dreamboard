@@ -1,5 +1,7 @@
 package kr.co.dreamboard.service;
 
+import java.util.Map;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -21,6 +23,17 @@ public class MemberServiceImpl implements MemberService {
 	public Member findID(Member mvo) {
 		return memberMapper.findID(mvo);
 	}
+	
+	@Override
+	public Member findPwd(Member mvo) {
+		return memberMapper.findPwd(mvo);
+	}
+	
+	@Override
+	public int modifyPasswordByMemID(Map<String, String> params) {
+		return memberMapper.updatePasswordByMemID(params);
+	}
+
 
 	@Override
 	public int join(Member m) {
@@ -31,6 +44,12 @@ public class MemberServiceImpl implements MemberService {
 	public Member checkDuplicate(String memID) {
 		return memberMapper.checkDuplicate(memID);
 	}
+	
+	@Override
+	public Member getMember(String memID) {
+		return memberMapper.getMember(memID);
+	}
+
 
 	@Override
 	public int modify(Member mvo) {
@@ -43,8 +62,10 @@ public class MemberServiceImpl implements MemberService {
 	}
 
 	@Override
-	public Member getMember(String memID) {
-		return memberMapper.getMember(memID);
+	public void deactivateMember(String memID) {
+		memberMapper.deactivateMember(memID);
 	}
+
+	
 
 }

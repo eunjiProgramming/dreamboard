@@ -38,7 +38,7 @@
 		    var memAge = $("#memAge").val();
 		    var memEmail = $("#memEmail").val();
 		    var memAddr = $("#memAddr").val();
-		    
+		    var pwdPattern = /^(?=.*[a-z])[a-z\d*!]{7,20}$/;
 		 
 		 	// 비밀번호 유효성 검사
 		    if (!memPwd1) {
@@ -49,6 +49,13 @@
 		 	
 		    if (!memPwd2) {
 		        $("#checkMessage").html("비밀번호를 입력해주세요.");
+		        $("#checking").modal("show");
+		        return false;
+		    }
+		    
+		 	// 비밀번호 유효성 검사
+		    if (!pwdPattern.test(memPwd1)) {
+		        $("#checkMessage").html("비밀번호는 영문자(소문자)를 반드시 포함하며, 숫자와 특수문자 *! 만 포함 가능하고, 7~20자여야 합니다.");
 		        $("#checking").modal("show");
 		        return false;
 		    }
@@ -130,6 +137,13 @@
 	    	 return true;
 		}
 	  
+	  function confirmDeactivate() {
+		    var result = confirm("정말로 회원 탈퇴를 원하시나요?");
+		    if(result) {
+		        window.location.href = "${contextPath}/member/deactivate";  // 회원 탈퇴 처리 로직 URL로 리다이렉트
+		    }
+		}
+	  
   </script>
 </head>
 <body>
@@ -142,6 +156,7 @@
     <form name="frm" action="${contextPath}/member/modify" method="post">
     	<input type="hidden" id="memIdx" name="memIdx" value="${mvo.memIdx}" readonly="readonly"/>
     	<input type="hidden" id="memPwd" name="memPwd" value=""/>
+    	<input type="hidden" name="originURL" value="<%= request.getHeader("Referer") %>" />
         <div class="form-group">
             <label for="memID">아이디</label>
             <input type="text" class="form-control" id="memID" name="memID" value="${mvo.memID}" maxlength="20" required readonly/>
@@ -182,10 +197,13 @@
             <input type="text" class="form-control" id="memAddr" name="memAddr" maxlength="50" value="${mvo.memAddr}" required>
         </div>
         <tr>
-		    <td colspan="3" style="text-align: left;">
-		        <span id="passMessage" style="color: red"></span>
-		        <input type="button" class="btn btn-primary btn-sm float-right" value="수정" onclick="validateForm()"/>
-		    </td>
+		    <tr>
+	    <td colspan="3" style="text-align: left;">
+	        <span id="passMessage" style="color: red"></span>
+	        <input type="button" class="btn btn-primary btn-sm float-right" value="수정" onclick="validateForm()"/>
+	        <input type="button" class="btn btn-danger btn-sm float-right ml-2 mr-3" value="회원탈퇴" onclick="confirmDeactivate()"/>
+	    </td>
+	</tr>
 		</tr>
         
     </form>

@@ -21,26 +21,35 @@
 	  });
 	  
 	  function registerCheck() {
-			var memID = $("#memID").val();
-			$.ajax({
-				url : "${contextPath}/member/checkDuplicate",
-				type : "get",
-				data : {"memID" : memID},
-				success : function(result) {
-					// 중복유무 출력(result=1 : 사용할수있는 아이디, 0 : 사용할수없는 아이디)
-					if (result == 1) {
-						$("#idcheck").html("사용할 수 있는 아이디입니다.");
-								
-					} else {
-						$("#idcheck").html("사용할 수 없는 아이디입니다.");
-					}
-					$("#myModal").modal("show");
-				},
-				error : function() {
-					alert("error");
-				}
-			});
+		    var memID = $("#memID").val();
+		    var idPattern = /^(?=.*[a-z])[a-z\d]{3,20}$/;
+
+		    // 아이디 유효성 검사
+		    if (!idPattern.test(memID)) {
+		        $("#idcheck").html("아이디는 영문자(소문자)를 반드시 포함해야 하며, 숫자는 포함 가능하고, 3~20자여야 합니다.");
+		        $("#myModal").modal("show");
+		        return;
+		    }
+
+		    // 아이디가 유효한 경우에만 중복검사를 실행
+		    $.ajax({
+		        url: "${contextPath}/member/checkDuplicate",
+		        type: "get",
+		        data: { "memID": memID },
+		        success: function(result) {
+		            if (result != 1) {
+		                $("#idcheck").html("사용할 수 없는 아이디입니다.");
+		            } else {
+		                $("#idcheck").html("사용할 수 있는 아이디입니다.");
+		            }
+		            $("#myModal").modal("show");
+		        },
+		        error: function() {
+		            alert("error");
+		        }
+		    });
 		}
+
 	  
 	  function passwordCheck(){
 	    	var memPwd1=$("#memPwd1").val();
@@ -54,20 +63,30 @@
 	    }
 	  
 	  function validateForm() {
-		    var memID = $("#memID").val();
+		  	var memID = $("#memID").val();
 		    var memPwd1 = $("#memPwd1").val();
 		    var memPwd2 = $("#memPwd2").val();
 		    var memName = $("#memName").val();
 		    var memAge = $("#memAge").val();
 		    var memEmail = $("#memEmail").val();
 		    var memAddr = $("#memAddr").val();
-		    
-		 	// 아이디 유효성 검사
+		    var idPattern = /^(?=.*[a-z])[a-z\d]{3,20}$/;
+		    var pwdPattern = /^(?=.*[a-z])[a-z\d*!]{7,20}$/;
+
+
+		    // 아이디 유효성 검사
 		    if (!memID) {
 		        $("#checkMessage").html("아이디를 입력해주세요.");
 		        $("#checking").modal("show");
 		        return false;
 		    }
+
+		    if (!idPattern.test(memID)) {
+		        $("#checkMessage").html("아이디는 영문자(소문자)를 반드시 포함해야 하며, 숫자는 포함 가능하고, 3~20자여야 합니다.");
+		        $("#checking").modal("show");
+		        return false;
+		    }
+		 	
 		    if (memID.length < 3 || memID.length > 20) {
 		        $("#checkMessage").html("아이디는 3자 이상 20자 이하로 입력해주세요.");
 		        $("#checking").modal("show");
@@ -87,11 +106,12 @@
 		        return false;
 		    }
 		    
-		    if (memPwd1.length < 7 || memPwd1.length > 20) {
-		        $("#checkMessage").html("비밀번호는 7자 이상 20자 이하로 입력해주세요.");
+		    if (!pwdPattern.test(memPwd1)) {
+		        $("#checkMessage").html("비밀번호는 영문자(소문자)를 반드시 포함하며, 숫자와 특수문자 *! 만 포함 가능하고, 7~20자여야 합니다.");
 		        $("#checking").modal("show");
 		        return false;
 		    }
+		    
 		    
 		    if (memPwd1 !== memPwd2) {
 		        $("#checkMessage").html("비밀번호가 서로 일치하지 않습니다.");

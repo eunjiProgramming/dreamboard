@@ -7,7 +7,10 @@ import javax.servlet.http.HttpSession;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
 import kr.co.dreamboard.entity.Board;
 import kr.co.dreamboard.entity.Criteria;
@@ -47,5 +50,18 @@ public class BoardController {
 		
 		return "board/list"; // View
  	}
+	
+	@GetMapping("/register")
+	public String register() {
+		return "board/register";
+	}
+	
+	@PostMapping("/register")
+	public String register(Board vo, RedirectAttributes rttr) { // 파라메터수집(vo)<-- 한글인코딩
+		boardService.register(vo); // 게시물등록(vo->idx, boardGroup)
+		System.out.println(vo);
+		rttr.addFlashAttribute("result", vo.getBoardIdx()); // ${result}
+		return "redirect:/board/list";
+	}
 
 }

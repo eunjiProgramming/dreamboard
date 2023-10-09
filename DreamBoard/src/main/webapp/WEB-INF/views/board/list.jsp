@@ -2,11 +2,11 @@
 <%@taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core" %>
 <%@taglib prefix="fn" uri="http://java.sun.com/jsp/jstl/functions" %>
 <%@taglib prefix="fmt" uri="http://java.sun.com/jsp/jstl/fmt" %>
-<c:set var="cpath" value="${pageContext.request.contextPath}"/>
+<c:set var="contextPath" value="${pageContext.request.contextPath}"/>
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <title>Bootstrap Example</title>
+  <title>Dream Board</title>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@4.6.2/dist/css/bootstrap.min.css">
@@ -16,13 +16,14 @@
   <script src="https://cdn.jsdelivr.net/npm/bootstrap@4.6.2/dist/js/bootstrap.bundle.min.js"></script>
   <script type="text/javascript" src="//dapi.kakao.com/v2/maps/sdk.js?appkey=8fdefe0992d4504ccd8895d4c299d090"></script>
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.7.2/font/bootstrap-icons.css"> 
+  <script src="${contextPath}/resources/javascript/common.js"></script>
   <script type="text/javascript">
     $(document).ready(function(){
     	var result='${result}'; 
     	checkModal(result); 
     	 
     	$("#regBtn").click(function(){
-    		location.href="${cpath}/board/register";
+    		location.href="${contextPath}/board/register";
     	}); 
     	
     	//페이지 번호 클릭시 이동 하기
@@ -40,68 +41,11 @@
     		var boardIdx=$(this).attr("href");
     		var tag="<input type='hidden' name='boardIdx' value='"+boardIdx+"'/>";
     		pageFrm.append(tag);
-    		pageFrm.attr("action","${cpath}/board/get");
+    		pageFrm.attr("action","${contextPath}/board/get");
     		pageFrm.attr("method","get");
     		pageFrm.submit();
     	}); 
     	
-    	// 책 검색 버튼이 클릭 되었을때 처리
-      	$("#search").click(function(){
-      		var bookname=$("#bookname").val();
-      		if(bookname==""){
-      			alert("책 제목을 입력하세요");
-      			return false;
-      		}
-      		// Kakao 책 검색 openAPI를 연동하기(키를발급)
-      		// URL : https://dapi.kakao.com/v3/search/book?target=title
-      		// H : Authorization: KakaoAK 616c762caa94dab798c1028d9f1ddb74
-      		$.ajax({
-      			url : "https://dapi.kakao.com/v3/search/book?target=title",
-      			headers : {"Authorization": "KakaoAK 616c762caa94dab798c1028d9f1ddb74"},
-      			type : "get",
-      			data : {"query" : bookname},
-      			dataType : "json",
-      			success : bookPrint,
-      			error : function(){ alert("error");}	
-      		});
-      		$(document).ajaxStart(function(){ $(".loading-progress").show(); });
-      		$(document).ajaxStop(function(){ $(".loading-progress").hide(); });
-      	});  
-    	
-     // input box에 책 제목이 입려되면 자동으로 검색을하는 기능
-      	$("#bookname").autocomplete({
-      		source : function(){ 
-      			var bookname=$("#bookname").val();
-      			$.ajax({
-      				url : "https://dapi.kakao.com/v3/search/book?target=title",
-          			headers : {"Authorization": "KakaoAK 616c762caa94dab798c1028d9f1ddb74"},
-          			type : "get",
-          			data : {"query" : bookname},
-          			dataType : "json",
-          			success : bookPrint,
-          			error : function(){ alert("error");}	
-          		});
-      		},
-      		minLength : 1    		
-      	});
-    	
-     // 지도 mapBtn 클릭시 지도가 보이도록 하기
-      	$("#mapBtn").click(function(){
-      		var address=$("#address").val();
-      		if(address==''){
-      			alert("주소를 입력하세요");
-      			return false;
-      		}
-      		$.ajax({
-      			url : "https://dapi.kakao.com/v2/local/search/address.json",
-      			headers : {"Authorization": "KakaoAK 616c762caa94dab798c1028d9f1ddb74"},
-      			type : "get",
-      			data : {"query" : address},
-      			dataType : "json",
-      			success : mapView,
-      			error : function() { alert("error"); }  			
-      		});
-      	});
      });
     
      function checkModal(result){
@@ -118,67 +62,7 @@
      function goMsg(){
     	 alert("삭제된 게시물입니다."); // Modal창
      }
-     function bookPrint(data){
-      	 var bList="<table class='table table-hover'>";
-      	 bList+="<thead>";
-      	 bList+="<tr>";
-      	 bList+="<th>책이미지</th>";
-      	 bList+="<th>책가격</th>";
-      	 bList+="</tr>";
-      	 bList+="</thead>";
-      	 bList+="<tbody>";
-      	 $.each(data.documents,function(index, obj){
-      		 var image=obj.thumbnail;
-      		 var price=obj.price;
-      		 var url=obj.url;
-      		 bList+="<tr>";
-          	 bList+="<td><a href='"+url+"'><img src='"+image+"' width='50px' height='60px'/></a></td>";
-          	 bList+="<td>"+price+"</td>";
-          	 bList+="</tr>";
-      	 }); 
-      	 bList+="</tbody>";
-      	 bList+="</table>";
-      	 $("#bookList").html(bList);
-       }
      
-     function mapView(data){
-    	 var x=data.documents[0].x; // 경도
-    	 var y=data.documents[0].y; // 위도
-      	 var mapContainer = document.getElementById('map'), // 지도를 표시할 div 
-      	    mapOption = { 
-      	        center: new kakao.maps.LatLng(y, x), // 지도의 중심좌표
-      	        level: 2 // 지도의 확대 레벨
-      	    };
-      	// 지도를 표시할 div와  지도 옵션으로  지도를 생성합니다
-      	var map = new kakao.maps.Map(mapContainer, mapOption); 
-      	
-      	// 마커가 표시될 위치입니다 
-      	var markerPosition  = new kakao.maps.LatLng(y, x); 
-
-      	// 마커를 생성합니다
-      	var marker = new kakao.maps.Marker({
-      	    position: markerPosition
-      	});
-         
-      	// 마커가 지도 위에 표시되도록 설정합니다
-      	marker.setMap(map);
-      	// 마커를 클릭했을 때 마커 위에 표시할 인포윈도우를 생성합니다
-      	var iwContent = '<div style="padding:5px;">${mvo.memName}</div>', // 인포윈도우에 표출될 내용으로 HTML 문자열이나 document element가 가능합니다
-      	    iwRemoveable = true; // removeable 속성을 ture 로 설정하면 인포윈도우를 닫을 수 있는 x버튼이 표시됩니다
-
-      	// 인포윈도우를 생성합니다
-      	var infowindow = new kakao.maps.InfoWindow({
-      	    content : iwContent,
-      	    removable : iwRemoveable
-      	});
-
-      	// 마커에 클릭이벤트를 등록합니다
-      	kakao.maps.event.addListener(marker, 'click', function() {
-      	      // 마커 위에 인포윈도우를 표시합니다
-      	      infowindow.open(map, marker);  
-      	});
-       
-     }
 	</script>
 </head>
 <body>
@@ -242,7 +126,7 @@
 					</c:if>
 				</table>
 				<!-- 검색메뉴 -->
-				<form class="form-inline" action="${cpath}/board/list" method="post">
+				<form class="form-inline" action="${contextPath}/board/list" method="post">
 					<div class="container">
 						<div class="input-group mb-3">
 							<div class="input-group-append">
@@ -283,7 +167,7 @@
 			        </ul>
 			      <!-- END -->
 			      
-			      <form id="pageFrm" action="${cpath}/board/list" method="post">
+			      <form id="pageFrm" action="${contextPath}/board/list" method="post">
 			         <!-- 게시물 번호(boardIdx)추가 -->         
 			         <input type="hidden" id="page" name="page" value="${pageMaker.cri.page}"/>
 			         <input type="hidden" name="perPageNum" value="${pageMaker.cri.perPageNum}"/>
@@ -315,7 +199,7 @@
 		  </div>
 		</div>
 	</div> 
-	<div class="card-footer">인프런_스프2탄_박매일</div>
+	<div class="card-footer">DreamBoard_권은지</div>
 </div>
 
 </body>
